@@ -50,3 +50,17 @@ Options:
   -z, --zoom <zoomPercent>         Signature zoom percentage (%), e.g: 20
   -h, --help                       display help for command
 ```
+
+### Example
+
+```
+pdfstamp stamp \                                                                                                      
+--input ./input.pdf \                                                                                  
+--signature ./signature.png \                                                      
+--output ./output.pdf \                                
+--page 2 \                       
+--bottom 300 \
+--left 200
+```
+
+![output](https://i.imgur.com/HHBtG2l.png)
