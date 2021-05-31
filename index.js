@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const program = require("commander");
 const chalk = require("chalk");
 const os = require("os");
@@ -33,6 +35,7 @@ program
 
 program
   .command("stamp")
+  .description('Stamps the pdf document')
   .requiredOption("-i, --input <inputPdfPath>", "Input document, e.g: file.pdf")
   .requiredOption(
     "-s, --signature <signaturePath>",

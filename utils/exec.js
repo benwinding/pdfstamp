@@ -17,12 +17,12 @@ async function execCmd(cmd, opts) {
   let child;
   stdout._write = function (data) {
     output += data;
-    process.stdout.write(data);
+    // process.stdout.write(data);
   };
   const stderr = new stream.Writable();
   stderr._write = function (data) {
     outputErr += data;
-    process.stderr.write(data);
+    // process.stderr.write(data);
   };
   child = spawn(cmd, [], { cwd: directory, shell: true, stdio: "inherit" });
   child.stdout && child.stdout.pipe(stdout);
@@ -47,12 +47,12 @@ async function execCmdResult(cmd, opts) {
 
   const stdout = new stream.Writable();
   stdout._write = function (data) {
-    process.stdout.write(data);
+    // process.stdout.write(data);
     output.push(data);
   };
   const stderr = new stream.Writable();
   stderr._write = function (data) {
-    process.stderr.write(data);
+    // process.stderr.write(data);
     outputErr.push(data);
   };
   const child = exec(cmd, { cwd: directory });
