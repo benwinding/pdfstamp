@@ -1,4 +1,10 @@
 # pdfstamp
+<!-- [START badges] -->
+[![NPM Version](https://img.shields.io/npm/v/pdfstamp.svg)](https://www.npmjs.com/package/pdfstamp) 
+[![License](https://img.shields.io/npm/l/pdfstamp.svg)](https://github.com/benwinding/pdfstamp/blob/master/LICENSE) 
+[![Downloads/week](https://img.shields.io/npm/dm/pdfstamp.svg)](https://www.npmjs.com/package/pdfstamp) 
+[![Github Issues](https://img.shields.io/github/issues/benwinding/pdfstamp.svg)](https://github.com/benwinding/pdfstamp)
+<!-- [END badges] -->
 
 Easily add image signatures like `signature.png` to an existing pdf.
 
