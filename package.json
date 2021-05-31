@@ -1,0 +1,31 @@
+{
+  "name": "pdfstamp",
+  "version": "1.0.0",
+  "description": "A cli tool to stamp PDF's, using (ImageMagick and pdftk)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/benwinding/pdfstamp.git"
+  },
+  "keywords": [
+    "pdf",
+    "stamp",
+    "pdf",
+    "conversion"
+  ],
+  "author": "Ben Winding",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/benwinding/pdfstamp/issues"
+  },
+  "homepage": "https://github.com/benwinding/pdfstamp#readme",
+  "dependencies": {
+    "chalk": "^4.1.1",
+    "commander": "^7.2.0",
+    "rimraf": "^3.0.2",
+    "shelljs": "^0.8.4"
+  }
+}

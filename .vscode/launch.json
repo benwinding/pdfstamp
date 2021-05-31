@@ -1,0 +1,22 @@
+{
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Test Doctor",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/index.js",
+      "args": ["doctor"]
+    },
+    {
+      "name": "Test Convert",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceFolder}/index.js",
+      "args": ["stamp", "-i","/home/ben/Downloads/back/change-account-ownership-name-form (copy).pdf","-s", "/home/ben/Downloads/signature.png"]
+    }
+  ]
+}
