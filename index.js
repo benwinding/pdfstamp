@@ -76,9 +76,17 @@ program
   .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", 25)
   .action(async (args) => {
     IS_DEBUG = args.debug;
-    const TEMP_SIG_PDF = MakeTmpPath("signature-") + ".pdf";
-    const TEMP_PAGE_PRE_SIGN_PDF = MakeTmpPath("page-pre-sign-") + ".pdf";
-    const TEMP_PAGE_SIGNED_PDF = MakeTmpPath("page-signed-") + ".pdf";
+    const TEMP_SIG_PDF = MakeTmpPath("signature") + ".pdf";
+    const TEMP_PAGE_PRE_SIGN_PDF = MakeTmpPath("page-pre-sign") + ".pdf";
+    const TEMP_PAGE_SIGNED_PDF = MakeTmpPath("page-signed") + ".pdf";
+    const TEMP_NORMALISED_SIGNATURE_FILE = MakeTmpPath("signature-normalised") + ".png";
+
+    const TempFiles = [
+      TEMP_SIG_PDF,
+      TEMP_PAGE_PRE_SIGN_PDF,
+      TEMP_PAGE_SIGNED_PDF,
+      TEMP_NORMALISED_SIGNATURE_FILE,      
+    ];
 
     const INPUT_PDF = args.input;
     const INPUT_SIGNATURE_FILE = args.signature;
@@ -90,6 +98,8 @@ program
       top: 0,
     };
 
+    const SIGNATURE_WIDTH = 500;
+
     const PAGE_NUM = +(args.page);
     const OUTPUT_PDF = args.output;
     const ZOOM = +(args.zoom);
@@ -97,9 +107,7 @@ program
     try {
       // Get Page count
       const pageCount = GetPageCount(INPUT_PDF, PAGE_NUM);
-      // Get signature image props
-      const signatureImg = GetSignatureSize(INPUT_SIGNATURE_FILE);
-      log('Signature properties:', {signatureImg});
+      NormaliseSignatureGetPath(INPUT_SIGNATURE_FILE, TEMP_NORMALISED_SIGNATURE_FILE, SIGNATURE_WIDTH)
 
       function MakeSignatureCommand() {
         // TODO add pagesize option
@@ -113,12 +121,12 @@ program
           return sig.CalculateOrientation(IS_BOTTOM, IS_LEFT, MOVE_LEFT, MOVE_RIGHT, MOVE_TOP, MOVE_BOTTOM);
         }
         const pageWidth = 590;
-        const zoomSig = sig.CalculateZoom(ZOOM, pageWidth, signatureImg.w).toFixed(3);
+        const zoomSig = sig.CalculateZoom(ZOOM, pageWidth, SIGNATURE_WIDTH).toFixed(3);
         const orientation = GetOrientation();
         const translationFragment = `-page a4-${orientation.x}-${orientation.y}`;
-        log('Zoom: ', {zoomSig, orientation, pageWidth});
+        log('Zoom: ', { zoomSig, orientation, pageWidth });
         // More info on imagemagick commands here: https://imagemagick.org/script/command-line-options.php#page
-        const cmd = `convert "${INPUT_SIGNATURE_FILE}" -gravity ${orientation.gravity} -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
+        const cmd = `convert "${TEMP_NORMALISED_SIGNATURE_FILE}" -gravity ${orientation.gravity} -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
         log('Signature CMD: ', cmd);
         return cmd;
       }
@@ -154,25 +162,16 @@ program
     if (IS_DEBUG) {
       const debugDir = './_pdf-stamp-temp';
       sh.mkdir('-p', debugDir);
-      await execCmd(`mv "${TEMP_SIG_PDF}" "${TEMP_PAGE_PRE_SIGN_PDF}" "${TEMP_PAGE_SIGNED_PDF}" ${debugDir}`)
+      await execCmd(`mv ${TempFiles.map(f => `"${f}"`).join(' ')} ${debugDir}`)
     }
 
-    await Promise.all([
-      RemoveFile(TEMP_SIG_PDF),
-      RemoveFile(TEMP_PAGE_PRE_SIGN_PDF),
-      RemoveFile(TEMP_PAGE_SIGNED_PDF),
-    ]);
+    await Promise.all(TempFiles.map(f => RemoveFile(f)));
   });
 
-function GetSignatureSize(inputSignaturePath) {
-  const res2 = sh
-  .exec(`identify -ping -format '%w %h'  "${inputSignaturePath}"`, { silent: true })
-  .toString();
-  const [sigW, sigH] = res2.split(" ").map(v => +v);
-  return {
-    w: sigW,
-    h: sigH
-  }
+function NormaliseSignatureGetPath(inputSignaturePath, outputPath, width) {
+  sh
+    .exec(`convert ${inputSignaturePath} -resize '${width}x${width}'  "${outputPath}"`, { silent: true })
+    .toString();
 }
 
 function GetPageCount(inputPdfPath, pageNum) {
