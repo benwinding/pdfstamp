@@ -69,11 +69,11 @@ program
     "-b, --bottom <bottomAmount>",
     "Signature position from page bottom (px), e.g: 120"
   )
+  .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", 25)
   .option(
     "--debug",
     "Keeps temporary PDF files (for development purposes)"
   )
-  .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", 25)
   .action(async (args) => {
     IS_DEBUG = args.debug;
     const TEMP_SIG_PDF = MakeTmpPath("signature") + ".pdf";

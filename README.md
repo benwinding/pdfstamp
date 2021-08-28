@@ -43,11 +43,14 @@ Stamps the pdf document
 Options:
   -i, --input <inputPdfPath>       Input document, e.g: file.pdf
   -s, --signature <signaturePath>  Signature file, e.g: signature.png
-  -p, --page <pageNum>             Page to input the signature, e.g: 3
-  -o, --output <outputPdfPath>     Output stamped document, e.g: out.pdf
-  -l, --left <leftAmount>          Signature position from left (px), e.g: 120
-  -b, --bottom <bottomAmount>      Signature position from bottom (px), e.g: 120
-  -z, --zoom <zoomPercent>         Signature zoom percentage (%), e.g: 20
+  -p, --page <pageNum>             Page to input the signature, default: 1 (default: 1)
+  -o, --output <outputPdfPath>     Output stamped document, default: output.pdf (default: "output.pdf")
+  -l, --left <leftAmount>          Signature position from page left (px), e.g: 120
+  -r, --right <rightAmount>        Signature position from page right (px), e.g: 120
+  -t, --top <topAmount>            Signature position from page top (px), e.g: 120
+  -b, --bottom <bottomAmount>      Signature position from page bottom (px), e.g: 120
+  -z, --zoom <zoomPercent>         Signature zoom percentage on page (100% is full pagewidth), default: 25 (default: 25)
+  --debug                          Keeps temporary PDF files (for development purposes)
   -h, --help                       display help for command
 ```
 
