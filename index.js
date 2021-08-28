@@ -186,7 +186,7 @@ function GetPageCount(inputPdfPath, pageNum) {
     throw "--page must be <= the number of pages in the input document";
   }
   if (pageNum < 1) {
-    throw "--page must be > 0  and less than the number of pages in the input document";
+    throw "--page must be > 0";
   }
   return pageCount;
 }
