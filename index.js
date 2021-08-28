@@ -78,7 +78,7 @@ program
     IS_DEBUG = args.debug;
     const TEMP_SIG_PDF = MakeTmpPath("signature") + ".pdf";
     const TEMP_PAGE_PRE_SIGN_PDF = MakeTmpPath("page-pre-sign") + ".pdf";
-    const TEMP_PAGE_SIGNED_PDF = MakeTmpPath("page-signed") + ".pdf";
+    const TEMP_PAGE_SIGNED_PDF = MakeTmpPath("page-signed-single") + ".pdf";
     const TEMP_NORMALISED_SIGNATURE_FILE = MakeTmpPath("signature-normalised") + ".png";
 
     const TempFiles = [
@@ -107,7 +107,7 @@ program
     try {
       // Get Page count
       const pageCount = GetPageCount(INPUT_PDF, PAGE_NUM);
-      NormaliseSignatureGetPath(INPUT_SIGNATURE_FILE, TEMP_NORMALISED_SIGNATURE_FILE, SIGNATURE_WIDTH)
+      await NormaliseSignatureGetPath(INPUT_SIGNATURE_FILE, TEMP_NORMALISED_SIGNATURE_FILE, SIGNATURE_WIDTH)
 
       function MakeSignatureCommand() {
         // TODO add pagesize option
@@ -168,10 +168,8 @@ program
     await Promise.all(TempFiles.map(f => RemoveFile(f)));
   });
 
-function NormaliseSignatureGetPath(inputSignaturePath, outputPath, width) {
-  sh
-    .exec(`convert ${inputSignaturePath} -resize '${width}x${width}'  "${outputPath}"`, { silent: true })
-    .toString();
+async function NormaliseSignatureGetPath(inputSignaturePath, outputPath, width) {
+  await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize '${width}x${width}' "${outputPath}"`)
 }
 
 function GetPageCount(inputPdfPath, pageNum) {
