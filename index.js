@@ -106,19 +106,20 @@ program
         function GetOrientation() {
           const MOVE_RIGHT = args.right || defaults.right;
           const MOVE_LEFT = args.left || defaults.left;
-          const IS_LEFT = args.left != undefined;
+          const IS_LEFT = args.right === undefined;
           const MOVE_BOTTOM = args.bottom || defaults.bottom;
           const MOVE_TOP = args.top || defaults.top;
-          const IS_BOTTOM = args.bottom != undefined;
+          const IS_BOTTOM = args.top === undefined;
           return sig.CalculateOrientation(IS_BOTTOM, IS_LEFT, MOVE_LEFT, MOVE_RIGHT, MOVE_TOP, MOVE_BOTTOM);
         }
         const pageWidth = 590;
-        const zoomSig = sig.CalculateZoom(ZOOM, pageWidth, signatureImg.w);
+        const zoomSig = sig.CalculateZoom(ZOOM, pageWidth, signatureImg.w).toFixed(3);
         const orientation = GetOrientation();
-        const translationFragment = `-page a4+${orientation.x}+${orientation.y}`;
+        const translationFragment = `-page a4-${orientation.x}-${orientation.y}`;
         log('Zoom: ', {zoomSig, orientation, pageWidth});
         // More info on imagemagick commands here: https://imagemagick.org/script/command-line-options.php#page
-        const cmd = `convert "${INPUT_SIGNATURE_FILE}" -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
+        const cmd = `convert "${INPUT_SIGNATURE_FILE}" -gravity ${orientation.gravity} -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
+        log('Signature CMD: ', cmd);
         return cmd;
       }
 

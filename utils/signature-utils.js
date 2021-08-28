@@ -14,28 +14,36 @@ function CalculateOrientation(isUsingBottom, isUsingLeft, moveL, moveR, moveT, m
   const isUsingRight = !isUsingLeft;
   if (isUsingTop && isUsingLeft) {
     return {
-      gravity: 'NorthWest',
+      isUsingTop,
+      isUsingLeft,
+      gravity: 'northwest',
       y: moveT,
       x: moveL,
     }
   }
   if (isUsingTop && isUsingRight) {
     return {
-      gravity: 'NorthEast',
+      isUsingTop,
+      isUsingLeft,
+      gravity: 'northeast',
       y: moveT,
       x: moveR,
     }
   }
   if (isUsingBottom && isUsingLeft) {
     return {
-      gravity: 'SouthWest',
+      isUsingTop,
+      isUsingLeft,
+      gravity: 'southwest',
       y: moveB,
       x: moveL,
     }
   }
   if (isUsingBottom && isUsingRight) {
     return {
-      gravity: 'SouthEast',
+      isUsingTop,
+      isUsingLeft,
+      gravity: 'southeast',
       y: moveB,
       x: moveR,
     }
