@@ -2,5 +2,5 @@ node_modules
 yarn*
 .DS_Store
 _pdf-stamp-temp*
-example/output.pdf
+example/output*.pdf
 output.pdf
