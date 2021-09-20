@@ -68,7 +68,6 @@ program
     "Signature position from page bottom (px), e.g: 120"
   )
   .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", '25')
-  .option("--pageSize <pageSize>", "Page size (a4, letter, ...), default: a4", 'a4')
   .option(
     "--debug",
     "Keeps temporary PDF files (for development purposes)"
@@ -84,7 +83,7 @@ program
       TEMP_SIG_PDF,
       TEMP_PAGE_PRE_SIGN_PDF,
       TEMP_PAGE_SIGNED_PDF,
-      TEMP_NORMALISED_SIGNATURE_FILE,      
+      TEMP_NORMALISED_SIGNATURE_FILE,
     ];
 
     const INPUT_PDF = args.input;
@@ -106,10 +105,12 @@ program
 
     try {
       // Get Page count
-      const pageCount = GetPageCount(INPUT_PDF, PAGE_NUM);
+      const pdfDataDump = GetPdfDataString(INPUT_PDF);
+      const pageCount = GetPageCount(pdfDataDump, PAGE_NUM);
+      const pageSize = GetPageSize(pdfDataDump, PAGE_NUM);
       await NormaliseSignatureGetPath(INPUT_SIGNATURE_FILE, TEMP_NORMALISED_SIGNATURE_FILE, SIGNATURE_WIDTH)
 
-      const MakeSignatureCommand = () =>  {
+      const MakeSignatureCommand = () => {
         // TODO add pagesize option
         function GetOrientation() {
           const MOVE_RIGHT = args.right || defaults.right;
@@ -120,11 +121,12 @@ program
           const IS_BOTTOM = args.top === undefined;
           return CalculateOrientation(IS_BOTTOM, IS_LEFT, MOVE_LEFT, MOVE_RIGHT, MOVE_TOP, MOVE_BOTTOM);
         }
-        const pageWidth = 590;
+        const pageWidth = +pageSize.width;
         const zoomSig = CalculateZoom(ZOOM, pageWidth, SIGNATURE_WIDTH).toFixed(3);
         const orientation = GetOrientation();
-        const translationFragment = `-page ${PAGE_SIZE}-${orientation.x}-${orientation.y}`;
-        log('Zoom: ', { zoomSig, orientation, pageWidth });
+        const size = `${pageSize.width}x${pageSize.height}`; // a4
+        const translationFragment = `-page ${size}-${orientation.x}-${orientation.y}`;
+        log('Zoom: ', { zoomSig, orientation, pageWidth, pageSize });
         // More info on imagemagick commands here: https://imagemagick.org/script/command-line-options.php#page
         const cmd = `convert "${TEMP_NORMALISED_SIGNATURE_FILE}" -gravity ${orientation.gravity} -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
         log('Signature CMD: ', cmd);
@@ -172,14 +174,18 @@ async function NormaliseSignatureGetPath(inputSignaturePath: string, outputPath:
   await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize '${width}x${width}' "${outputPath}"`)
 }
 
-function GetPageCount(inputPdfPath: string, pageNum: number) {
+function GetPdfDataString(inputPdfPath: string) {
   const res = sh
     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
     .toString();
   if (!res.includes("NumberOfPages")) {
     throw `There was a problem reading the input PDF "${inputPdfPath}"`;
   }
-  const pageCount = +(res?.split("NumberOfPages: ")?.pop()?.split("\n")?.shift() || '');
+  return res;
+}
+
+function GetPageCount(pdfDataDump: string, pageNum: number) {
+  const pageCount = +(pdfDataDump?.split("NumberOfPages: ")?.pop()?.split("\n")?.shift() || '');
   if (pageNum > pageCount) {
     throw "--page must be <= the number of pages in the input document";
   }
@@ -189,22 +195,21 @@ function GetPageCount(inputPdfPath: string, pageNum: number) {
   return pageCount;
 }
 
-// function GetPageSize(inputPdfPath, pageNum) {
-//   const res = sh
-//     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
-//     .toString();
-//   if (!res.includes("NumberOfPages")) {
-//     throw `There was a problem reading the input PDF "${inputPdfPath}"`;
-//   }
-//   const pageCount = +res.split("NumberOfPages: ").pop().split("\n").shift();
-//   if (pageNum > pageCount) {
-//     throw "--page must be <= the number of pages in the input document";
-//   }
-//   if (pageNum < 1) {
-//     throw "--page must be > 0";
-//   }
-//   return pageCount;
-// }
+function GetPageSize(pdfDataDump: string, pageNum: number): {
+  width: string,
+  height: string
+} {
+  const pages = pdfDataDump?.split('\nPageMediaNumber: ');
+  const page = pages.find(p => p.startsWith(pageNum + ''));
+  const pageSizePre = page?.split('\n').find(p => p.startsWith('PageMediaDimensions: ')) || '';
+  const pageSizeString = pageSizePre.replace("PageMediaDimensions: ", '');
+  const pageSize = {
+    width: pageSizeString.split(' ').shift() || '',
+    height: pageSizeString.split(' ').pop() || '',
+  }
+  log('Get Page Size (from pdf_dump)', { pages, pageNum, pageSizeString, pageSize })
+  return pageSize;
+}
 
 function RemoveFile(filePath: string) {
   return new Promise((res, rej) => {
