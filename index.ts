@@ -228,4 +228,11 @@ function MakeTmpPath(fname: string) {
   return path.join(os.tmpdir(), UUID + '-' + fname);
 }
 
+program
+  .command("version")
+  .description("Displays version")
+  .action(async () => {
+    console.log(require('./package.json').version);
+  });
+
 program.parse(process.argv);
