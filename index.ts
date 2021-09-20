@@ -1,20 +1,18 @@
-#!/usr/bin/env node
-
-const program = require("commander");
-const chalk = require("chalk");
-const os = require("os");
-const rimraf = require("rimraf");
-const path = require("path");
-const sh = require("shelljs");
-const { execCmd, execCmdResult } = require("./utils/exec");
-const sig = require("./utils/signature-utils");
+import program from "commander";
+import chalk from "chalk";
+import os from "os";
+import path from "path";
+import rimraf from "rimraf";
+import sh from "shelljs";
+import { execCmd, execCmdResult } from "./utils/exec";
+import { CalculateZoom, CalculateOrientation } from "./utils/signature-utils";
 
 var IS_DEBUG = false;
-function log(...args) {
+function log(...args: any[]) {
   IS_DEBUG && console.log('DEBUG: ', ...args);
 }
 
-async function exists(commandName, installTxt) {
+async function exists(commandName: string, installTxt: string) {
   const valid = await execCmdResult(`which ${commandName}`)
     .then(() => true)
     .catch(() => false);
@@ -47,7 +45,7 @@ program
     "-s, --signature <signaturePath>",
     "Signature file, e.g: signature.png"
   )
-  .option("-p, --page <pageNum>", "Page to input the signature, default: 1", 1)
+  .option("-p, --page <pageNum>", "Page to input the signature, default: 1", '1')
   .option(
     "-o, --output <outputPdfPath>",
     "Output stamped document, default: output.pdf",
@@ -69,7 +67,8 @@ program
     "-b, --bottom <bottomAmount>",
     "Signature position from page bottom (px), e.g: 120"
   )
-  .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", 25)
+  .option("-z, --zoom <zoomPercent>", "Signature zoom percentage on page (100% is full pagewidth), default: 25", '25')
+  .option("--pageSize <pageSize>", "Page size (a4, letter, ...), default: a4", 'a4')
   .option(
     "--debug",
     "Keeps temporary PDF files (for development purposes)"
@@ -101,6 +100,7 @@ program
     const SIGNATURE_WIDTH = 500;
 
     const PAGE_NUM = +(args.page);
+    const PAGE_SIZE = args.pageSize;
     const OUTPUT_PDF = args.output;
     const ZOOM = +(args.zoom);
 
@@ -109,7 +109,7 @@ program
       const pageCount = GetPageCount(INPUT_PDF, PAGE_NUM);
       await NormaliseSignatureGetPath(INPUT_SIGNATURE_FILE, TEMP_NORMALISED_SIGNATURE_FILE, SIGNATURE_WIDTH)
 
-      function MakeSignatureCommand() {
+      const MakeSignatureCommand = () =>  {
         // TODO add pagesize option
         function GetOrientation() {
           const MOVE_RIGHT = args.right || defaults.right;
@@ -118,12 +118,12 @@ program
           const MOVE_BOTTOM = args.bottom || defaults.bottom;
           const MOVE_TOP = args.top || defaults.top;
           const IS_BOTTOM = args.top === undefined;
-          return sig.CalculateOrientation(IS_BOTTOM, IS_LEFT, MOVE_LEFT, MOVE_RIGHT, MOVE_TOP, MOVE_BOTTOM);
+          return CalculateOrientation(IS_BOTTOM, IS_LEFT, MOVE_LEFT, MOVE_RIGHT, MOVE_TOP, MOVE_BOTTOM);
         }
         const pageWidth = 590;
-        const zoomSig = sig.CalculateZoom(ZOOM, pageWidth, SIGNATURE_WIDTH).toFixed(3);
+        const zoomSig = CalculateZoom(ZOOM, pageWidth, SIGNATURE_WIDTH).toFixed(3);
         const orientation = GetOrientation();
-        const translationFragment = `-page a4-${orientation.x}-${orientation.y}`;
+        const translationFragment = `-page ${PAGE_SIZE}-${orientation.x}-${orientation.y}`;
         log('Zoom: ', { zoomSig, orientation, pageWidth });
         // More info on imagemagick commands here: https://imagemagick.org/script/command-line-options.php#page
         const cmd = `convert "${TEMP_NORMALISED_SIGNATURE_FILE}" -gravity ${orientation.gravity} -resize ${zoomSig}% -transparent white ${translationFragment} -quality 75 "${TEMP_SIG_PDF}"`;
@@ -142,7 +142,7 @@ program
         `pdftk "${TEMP_PAGE_PRE_SIGN_PDF}" stamp "${TEMP_SIG_PDF}" output "${TEMP_PAGE_SIGNED_PDF}"`
       );
       // Combine to original pdf
-      function joinDash(a, b) {
+      const joinDash = (a: string, b: string): string => {
         return [a, b].filter((a) => !!a).join("-");
       }
       const start1 = PAGE_NUM == 1 ? "" : "A1";
@@ -151,7 +151,7 @@ program
       const end1 = PAGE_NUM == pageCount ? "" : `A${PAGE_NUM + 1}`;
       const end2 = PAGE_NUM > pageCount - 2 ? "" : `${pageCount}`;
 
-      catCommand = `${joinDash(start1, start2)} B1 ${joinDash(end1, end2)}`;
+      const catCommand = `${joinDash(start1, start2)} B1 ${joinDash(end1, end2)}`;
       await execCmd(
         `pdftk A="${INPUT_PDF}" B="${TEMP_PAGE_SIGNED_PDF}" cat ${catCommand} output "${OUTPUT_PDF}"`
       );
@@ -168,18 +168,18 @@ program
     await Promise.all(TempFiles.map(f => RemoveFile(f)));
   });
 
-async function NormaliseSignatureGetPath(inputSignaturePath, outputPath, width) {
+async function NormaliseSignatureGetPath(inputSignaturePath: string, outputPath: string, width: number) {
   await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize '${width}x${width}' "${outputPath}"`)
 }
 
-function GetPageCount(inputPdfPath, pageNum) {
+function GetPageCount(inputPdfPath: string, pageNum: number) {
   const res = sh
     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
     .toString();
   if (!res.includes("NumberOfPages")) {
     throw `There was a problem reading the input PDF "${inputPdfPath}"`;
   }
-  const pageCount = +res.split("NumberOfPages: ").pop().split("\n").shift();
+  const pageCount = +(res?.split("NumberOfPages: ")?.pop()?.split("\n")?.shift() || '');
   if (pageNum > pageCount) {
     throw "--page must be <= the number of pages in the input document";
   }
@@ -189,20 +189,37 @@ function GetPageCount(inputPdfPath, pageNum) {
   return pageCount;
 }
 
-function RemoveFile(filePath) {
+// function GetPageSize(inputPdfPath, pageNum) {
+//   const res = sh
+//     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
+//     .toString();
+//   if (!res.includes("NumberOfPages")) {
+//     throw `There was a problem reading the input PDF "${inputPdfPath}"`;
+//   }
+//   const pageCount = +res.split("NumberOfPages: ").pop().split("\n").shift();
+//   if (pageNum > pageCount) {
+//     throw "--page must be <= the number of pages in the input document";
+//   }
+//   if (pageNum < 1) {
+//     throw "--page must be > 0";
+//   }
+//   return pageCount;
+// }
+
+function RemoveFile(filePath: string) {
   return new Promise((res, rej) => {
     rimraf(filePath, (err) => {
       if (err) {
         rej(err);
       } else {
-        res();
+        res(undefined);
       }
     });
   });
 }
 
 const UUID = Math.random().toString(32).slice(2, 10);
-function MakeTmpPath(fname) {
+function MakeTmpPath(fname: string) {
   return path.join(os.tmpdir(), UUID + '-' + fname);
 }
 

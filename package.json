@@ -23,9 +23,14 @@
   },
   "homepage": "https://github.com/benwinding/pdfstamp#readme",
   "dependencies": {
+    "@types/node": "^16.9.4",
+    "@types/rimraf": "^3.0.2",
+    "@types/shelljs": "^0.8.9",
     "chalk": "^4.1.1",
     "commander": "^7.2.0",
     "rimraf": "^3.0.2",
-    "shelljs": "^0.8.4"
+    "shelljs": "^0.8.4",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3"
   }
 }
