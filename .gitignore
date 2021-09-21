@@ -4,3 +4,4 @@ yarn*
 _pdf-stamp-temp*
 example/output*.pdf
 output.pdf
+dist
