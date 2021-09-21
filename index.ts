@@ -230,11 +230,16 @@ function MakeTmpPath(fname: string) {
   return path.join(os.tmpdir(), UUID + '-' + fname);
 }
 
+import packageJson from './package.json';
+
 program
-  .command("version")
-  .description("Displays version")
+  .option('-v, --version', 'Displays version')
   .action(async () => {
-    console.log(require('./package.json').version);
+    console.log(packageJson.version);
   });
 
-program.parse(process.argv);
+if (process.argv.length < 3) {
+  program.help()
+} else {
+  program.parse(process.argv);
+}
