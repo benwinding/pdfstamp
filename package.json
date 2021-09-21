@@ -6,6 +6,13 @@
   "bin": {
     "pdfstamp": "./dist/entry.js"
   },
+  "files": [
+    "dist",
+    "utils",
+    "index.ts",
+    "README.md",
+    "tsconfig.json"
+  ],
   "scripts": {
     "prepublish": "rm -rf dist && yarn tsc"
   },
