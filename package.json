@@ -14,7 +14,7 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "prepublish": "rm -rf dist && yarn tsc"
+    "deploy": "rm -rf dist && yarn tsc && npm publish"
   },
   "repository": {
     "type": "git",
