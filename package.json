@@ -2,9 +2,9 @@
   "name": "pdfstamp",
   "version": "1.0.11",
   "description": "A cli tool to stamp PDF's, using (ImageMagick and pdftk)",
-  "main": "./dist/index.ts",
+  "main": "./dist/index.js",
   "bin": {
-    "pdfstamp": "./dist/entry.js"
+    "pdfstamp": "./dist/index.js"
   },
   "files": [
     "dist",
