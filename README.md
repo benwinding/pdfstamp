@@ -33,6 +33,19 @@ Commands:
   help [command]   display help for command
 ```
 
+#### Using as a JS lib
+``` ts
+import { stamp } from 'pdfstamp';
+
+async function StampThat() {
+  await stamp({
+    signature: './signature.png',
+    input: './sample.pdf',
+    output: './output-example-lib.pdf'
+  })
+}
+```
+
 ### Stamping
 
 ```
