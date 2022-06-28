@@ -15,7 +15,7 @@
     "tsconfig.json"
   ],
   "scripts": {
-    "build": "rm -rf dist && yarn tsc"
+    "build": "npx tsc"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,8 @@
     "shelljs": "^0.8.4"
   },
   "devDependencies": {
+    "@types/commander": "^2.12.2",
+    "@types/chalk": "^2.2.0",
     "@types/node": "^16.9.4",
     "@types/rimraf": "^3.0.2",
     "@types/shelljs": "^0.8.9",

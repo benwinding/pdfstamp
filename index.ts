@@ -2,24 +2,40 @@
 
 import program from "commander";
 import chalk from "chalk";
-import os from "os";
+import os, { type } from "os";
 import path from "path";
 import rimraf from "rimraf";
 import sh from "shelljs";
-import { execCmd, execCmdResult } from "./utils/exec";
+import { execCmd, execCmdResult } from "./utils/exec"
 import { CalculateZoom, CalculateOrientation } from "./utils/signature-utils";
 
 var IS_DEBUG = false;
 function log(...args: any[]) {
-  IS_DEBUG && console.log('DEBUG: ', ...args);
+  IS_DEBUG && console.debug(...args);
 }
 
-async function exists(commandName: string, installTxt: string) {
-  const valid = await execCmdResult(`which ${commandName}`)
-    .then(() => true)
-    .catch(() => false);
-  const resultText = valid ? chalk.green("exists!") : chalk.red("not found");
-  log(`- checking ${commandName}: ${resultText}`);
+async function exists(commandName: string, expect: string, installTxt: string) {
+  let progs, valid, which = 'which', chalkText: string;
+  if(os.platform() === 'win32') { which = 'where'; }
+  progs = await execCmdResult(`${which} ${commandName}`)
+  const asExpected = (out: unknown) => {
+    return typeof out === 'string' && out.includes(expect) || typeof out === 'object' && Array.isArray(out) && out.some((o: string) => o.includes(expect))
+  }
+  valid = progs instanceof Promise && progs.then(
+    //foreach res as prog, check if executing 'prog --version' contains the expected string
+    async (res: unknown) => {
+      if (typeof res === 'object' && Array.isArray(res)) {
+        for (let prog of res) {
+          if (await execCmdResult(`${prog} --version`).then(asExpected).catch(() => false)){ return true; }
+        }
+        return false;
+      } else if(typeof res === 'string') {
+        return execCmdResult(`${res} --version`).then(asExpected).catch(() => false);
+      }
+    }
+  ).catch(() => false);
+  chalkText = valid ? chalk.green("exists!") : chalk.red("not found");
+  log(`- checking ${commandName}: ${chalkText}`);
   if (!valid) {
     log(chalk.blue(installTxt));
   }
@@ -31,10 +47,12 @@ program
   .action(async () => {
     await exists(
       "convert",
+      "ImageMagick Studio LLC",
       "Install this tool: https://imagemagick.org/script/convert.php"
     );
     await exists(
       "pdftk",
+      "a Handy Tool for Manipulating PDF Documents",
       "Install this tool: https://askubuntu.com/questions/1028522/how-can-i-install-pdftk-in-ubuntu-18-04-and-later"
     );
   });

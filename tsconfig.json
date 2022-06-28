@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "target": "es5",
+    "target": "ES6",
     "module": "commonjs",
     "types": [
       "node"
@@ -14,5 +14,8 @@
     "skipLibCheck": true,
     "outDir": "dist"
   },
-  "exclude": ["./example"]
+  "exclude": [
+    "./example",
+    "node_modules",
+    "**/*.spec.ts"]
 }
