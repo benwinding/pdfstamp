@@ -8,7 +8,7 @@ module.exports = {
 };
 
 async function execCmd(cmd: string, opts?: { cwd: any; }) {
-  const directory = typeof opts !=='undefined' && opts.cwd;
+  const directory = typeof opts !=='undefined' ? opts.cwd : undefined;
   printCommand(cmd, directory);
   let output = "";
   let outputErr = "";
@@ -40,7 +40,7 @@ async function execCmd(cmd: string, opts?: { cwd: any; }) {
 }
 
 async function execCmdResult(cmd: string, opts?: { cwd: any; }) {
-  const directory = typeof opts !=='undefined' && opts.cwd;
+  const directory = typeof opts !=='undefined' ? opts.cwd : undefined;
   printCommand(cmd, directory);
   const output: any[] = [];
   const outputErr: any[] = [];
@@ -72,7 +72,7 @@ async function execCmdResult(cmd: string, opts?: { cwd: any; }) {
   });
 }
 
-function printCommand(cmd: string, directory: any) {
+function printCommand(cmd: string, directory?: any): void {
   console.log(
     chalk.grey(
       `running $ ${cmd}`,

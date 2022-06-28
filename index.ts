@@ -9,33 +9,17 @@ import sh from "shelljs";
 import { execCmd, execCmdResult } from "./utils/exec"
 import { CalculateZoom, CalculateOrientation } from "./utils/signature-utils";
 
-var IS_DEBUG = false;
+var IS_DEBUG = true;
 function log(...args: any[]) {
   IS_DEBUG && console.debug(...args);
 }
 
-async function exists(commandName: string, expect: string, installTxt: string) {
-  let progs, valid, which = 'which', chalkText: string;
-  if(os.platform() === 'win32') { which = 'where'; }
-  progs = await execCmdResult(`${which} ${commandName}`)
-  const asExpected = (out: unknown) => {
-    return typeof out === 'string' && out.includes(expect) || typeof out === 'object' && Array.isArray(out) && out.some((o: string) => o.includes(expect))
-  }
-  valid = progs instanceof Promise && progs.then(
-    //foreach res as prog, check if executing 'prog --version' contains the expected string
-    async (res: unknown) => {
-      if (typeof res === 'object' && Array.isArray(res)) {
-        for (let prog of res) {
-          if (await execCmdResult(`${prog} --version`).then(asExpected).catch(() => false)){ return true; }
-        }
-        return false;
-      } else if(typeof res === 'string') {
-        return execCmdResult(`${res} --version`).then(asExpected).catch(() => false);
-      }
-    }
-  ).catch(() => false);
-  chalkText = valid ? chalk.green("exists!") : chalk.red("not found");
-  log(`- checking ${commandName}: ${chalkText}`);
+async function exists(commandName: string, installTxt: string) {
+  const valid = await execCmdResult(`which ${commandName}`)
+    .then(() => true)
+    .catch(() => false);
+  const resultText = valid ? chalk.green("exists!") : chalk.red("not found");
+  log(`- checking ${commandName}: ${resultText}`);
   if (!valid) {
     log(chalk.blue(installTxt));
   }
@@ -47,12 +31,10 @@ program
   .action(async () => {
     await exists(
       "convert",
-      "ImageMagick Studio LLC",
       "Install this tool: https://imagemagick.org/script/convert.php"
     );
     await exists(
       "pdftk",
-      "a Handy Tool for Manipulating PDF Documents",
       "Install this tool: https://askubuntu.com/questions/1028522/how-can-i-install-pdftk-in-ubuntu-18-04-and-later"
     );
   });
@@ -196,7 +178,7 @@ export async function stamp({
     );
     // Combine to original pdf
     const joinDash = (a: string, b: string): string => {
-      return [a, b].filter((a) => !!a).join("-");
+      return [a, b].filter((e) => !!e).join("-");
     }
     const start1 = PAGE_NUM == 1 ? "" : "A1";
     const start2 = PAGE_NUM <= 2 ? "" : `${PAGE_NUM - 1}`;
@@ -215,14 +197,14 @@ export async function stamp({
   if (IS_DEBUG) {
     const debugDir = './_pdf-stamp-temp';
     sh.mkdir('-p', debugDir);
-    await execCmd(`mv ${TempFiles.map(f => `"${f}"`).join(' ')} ${debugDir}`)
+    await execCmd(`npx shx mv ${TempFiles.map(f => '"'+f+'"').join(' ')} ${debugDir}`)
   }
 
   await Promise.all(TempFiles.map(f => RemoveFile(f)));
 }
 
 async function NormaliseSignatureGetPath(inputSignaturePath: string, outputPath: string, width: number) {
-  await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize '${width}x${width}' "${outputPath}"`)
+  await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize ${width}x${width} "${outputPath}"`)
 }
 
 function GetPdfDataString(inputPdfPath: string) {
@@ -230,7 +212,7 @@ function GetPdfDataString(inputPdfPath: string) {
     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
     .toString();
   if (!res.includes("NumberOfPages")) {
-    throw `There was a problem reading the input PDF "${inputPdfPath}"`;
+    throw new Error(`There was a problem reading the input PDF "${inputPdfPath}"`);
   }
   return res;
 }
@@ -238,10 +220,10 @@ function GetPdfDataString(inputPdfPath: string) {
 function GetPageCount(pdfDataDump: string, pageNum: number) {
   const pageCount = +(pdfDataDump?.split("NumberOfPages: ")?.pop()?.split("\n")?.shift() || '');
   if (pageNum > pageCount) {
-    throw "--page must be <= the number of pages in the input document";
+    throw new Error("--page must be <= the number of pages in the input document");
   }
   if (pageNum < 1) {
-    throw "--page must be > 0";
+    throw new Error("--page must be > 0");
   }
   return pageCount;
 }
