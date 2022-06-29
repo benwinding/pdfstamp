@@ -1,7 +1,6 @@
 export function CalculateZoom(userZoom: number, pageWidth: number, imageWidth: number) {
   const imageBiggerFactor = imageWidth / pageWidth;
-  const realZoom = userZoom / imageBiggerFactor;
-  return realZoom;
+  return userZoom / imageBiggerFactor;
 }
 
 export function CalculateOrientation(isUsingBottom: boolean, isUsingLeft: boolean, moveL: number, moveR: number, moveT: number, moveB: number): {
@@ -40,7 +39,6 @@ export function CalculateOrientation(isUsingBottom: boolean, isUsingLeft: boolea
       x: moveL,
     }
   }
-  // if (isUsingBottom && isUsingRight) {
   return {
     isUsingTop,
     isUsingLeft,

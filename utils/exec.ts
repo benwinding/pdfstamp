@@ -1,20 +1,20 @@
-const { spawn, exec } = require("child_process");
-const chalk = require("chalk");
-const stream = require("stream");
+import { spawn, exec, ChildProcess } from "child_process";
+import chalk from "chalk";
+import stream from "stream";
 
 module.exports = {
   execCmd,
   execCmdResult,
 };
 
-async function execCmd(cmd, opts) {
-  const directory = opts && opts.cwd;
+async function execCmd(cmd: string, opts?: { cwd: any; }) {
+  const directory = typeof opts !=='undefined' ? opts.cwd : undefined;
   printCommand(cmd, directory);
   let output = "";
   let outputErr = "";
 
   const stdout = new stream.Writable();
-  let child;
+  let child: ChildProcess;
   stdout._write = function (data) {
     output += data;
     // process.stdout.write(data);
@@ -39,11 +39,11 @@ async function execCmd(cmd, opts) {
   });
 }
 
-async function execCmdResult(cmd, opts) {
-  const directory = opts && opts.cwd;
+async function execCmdResult(cmd: string, opts?: { cwd: any; }) {
+  const directory = typeof opts !=='undefined' ? opts.cwd : undefined;
   printCommand(cmd, directory);
-  const output = [];
-  const outputErr = [];
+  const output: any[] = [];
+  const outputErr: any[] = [];
 
   const stdout = new stream.Writable();
   stdout._write = function (data) {
@@ -65,14 +65,14 @@ async function execCmdResult(cmd, opts) {
         reject(outputErr.join());
       } else {
         setTimeout(() => {
-          resolve(output.join());
+          resolve(output);
         }, 1000);
       }
     });
   });
 }
 
-function printCommand(cmd, directory) {
+function printCommand(cmd: string, directory?: any): void {
   console.log(
     chalk.grey(
       `running $ ${cmd}`,
@@ -80,3 +80,4 @@ function printCommand(cmd, directory) {
     )
   );
 }
+export { execCmd, execCmdResult };

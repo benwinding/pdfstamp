@@ -2,16 +2,16 @@
 
 import program from "commander";
 import chalk from "chalk";
-import os from "os";
+import os, { type } from "os";
 import path from "path";
 import rimraf from "rimraf";
 import sh from "shelljs";
-import { execCmd, execCmdResult } from "./utils/exec";
+import { execCmd, execCmdResult } from "./utils/exec"
 import { CalculateZoom, CalculateOrientation } from "./utils/signature-utils";
 
-var IS_DEBUG = false;
+var IS_DEBUG = true;
 function log(...args: any[]) {
-  IS_DEBUG && console.log('DEBUG: ', ...args);
+  IS_DEBUG && console.debug(...args);
 }
 
 async function exists(commandName: string, installTxt: string) {
@@ -178,7 +178,7 @@ export async function stamp({
     );
     // Combine to original pdf
     const joinDash = (a: string, b: string): string => {
-      return [a, b].filter((a) => !!a).join("-");
+      return [a, b].filter((e) => !!e).join("-");
     }
     const start1 = PAGE_NUM == 1 ? "" : "A1";
     const start2 = PAGE_NUM <= 2 ? "" : `${PAGE_NUM - 1}`;
@@ -197,14 +197,14 @@ export async function stamp({
   if (IS_DEBUG) {
     const debugDir = './_pdf-stamp-temp';
     sh.mkdir('-p', debugDir);
-    await execCmd(`mv ${TempFiles.map(f => `"${f}"`).join(' ')} ${debugDir}`)
+    await execCmd(`npx shx mv ${TempFiles.map(f => '"'+f+'"').join(' ')} ${debugDir}`)
   }
 
   await Promise.all(TempFiles.map(f => RemoveFile(f)));
 }
 
 async function NormaliseSignatureGetPath(inputSignaturePath: string, outputPath: string, width: number) {
-  await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize '${width}x${width}' "${outputPath}"`)
+  await execCmd(`convert ${inputSignaturePath} -set colorspace sRGB -resize ${width}x${width} "${outputPath}"`)
 }
 
 function GetPdfDataString(inputPdfPath: string) {
@@ -212,7 +212,7 @@ function GetPdfDataString(inputPdfPath: string) {
     .exec(`pdftk "${inputPdfPath}" dump_data`, { silent: true })
     .toString();
   if (!res.includes("NumberOfPages")) {
-    throw `There was a problem reading the input PDF "${inputPdfPath}"`;
+    throw new Error(`There was a problem reading the input PDF "${inputPdfPath}"`);
   }
   return res;
 }
@@ -220,10 +220,10 @@ function GetPdfDataString(inputPdfPath: string) {
 function GetPageCount(pdfDataDump: string, pageNum: number) {
   const pageCount = +(pdfDataDump?.split("NumberOfPages: ")?.pop()?.split("\n")?.shift() || '');
   if (pageNum > pageCount) {
-    throw "--page must be <= the number of pages in the input document";
+    throw new Error("--page must be <= the number of pages in the input document");
   }
   if (pageNum < 1) {
-    throw "--page must be > 0";
+    throw new Error("--page must be > 0");
   }
   return pageCount;
 }

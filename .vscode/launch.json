@@ -4,11 +4,12 @@
   // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
   "version": "0.2.0",
   "configurations": [
+
     {
       "name": "Test Doctor",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceFolder}/index.js",
+      "program": "${workspaceFolder}/dist/index.js",
       "args": ["doctor"]
     },
     {
